@@ -7,25 +7,28 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
-/**
- * CREDITS VIEW — The visual layout for the Credits screen.
- */
 public class CreditsView {
 
     private final VBox root;
     private final Button backButton;
 
     public CreditsView() {
-        // Header
-        Label titleLabel = ViewUtils.createHeaderLabel("CREDITS");
+        // 1. Initialize root container first
+        root = new VBox(20);
+        root.setPadding(new Insets(15, 40, 40, 40));
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        root.setStyle("-fx-background-color: #f4f4f4; -fx-border-color: #777777; -fx-border-width: 1px;");
+
+        // 2. Pass root into createPopupHeader to sync content reveal with the unroll animation
+        StackPane titleScroll = ViewUtils.createPopupHeader("CREDITS", root);
         backButton = ViewUtils.createCloseButton("X");
 
         BorderPane headerBox = new BorderPane();
-        headerBox.setCenter(titleLabel);
+        headerBox.setCenter(titleScroll);
         headerBox.setRight(backButton);
-        BorderPane.setAlignment(titleLabel, Pos.CENTER);
+        BorderPane.setAlignment(titleScroll, Pos.CENTER);
 
-        // --- LEFT COLUMN ---
         VBox leftCol = new VBox(20);
         leftCol.getChildren().addAll(
             createSection("PROGRAMMERS", "CIRE", "AIYENNA"),
@@ -33,7 +36,6 @@ public class CreditsView {
             createSection("PLAYTESTER", "AIYENNA")
         );
 
-        // --- RIGHT COLUMN ---
         VBox rightCol = new VBox(20);
         rightCol.getChildren().addAll(
             createSection("AUDIO DESIGN", "HILARIE"),
@@ -41,29 +43,21 @@ public class CreditsView {
             createSection("PM & ARCHITECT", "CIRE")
         );
 
-        // Use a GridPane to place the two columns side-by-side
         GridPane grid = new GridPane();
-        grid.setHgap(50); // Space between the columns
+        grid.setHgap(50); 
         grid.setAlignment(Pos.CENTER);
         grid.add(leftCol, 0, 0);
         grid.add(rightCol, 1, 0);
 
-        // Assemble the card
-        root = new VBox(30, headerBox, grid);
-        root.setPadding(new Insets(15, 40, 40, 40));
-        root.setAlignment(Pos.TOP_CENTER);
-        root.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        root.setStyle("-fx-background-color: #f4f4f4; -fx-border-color: #777777; -fx-border-width: 1px;");
+        // 3. Add components to root
+        root.getChildren().addAll(headerBox, grid);
     }
 
-    /**
-     * Helper method to create a block of text (Title + Names).
-     */
     private VBox createSection(String role, String... names) {
         Label roleLabel = new Label(role);
-        roleLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #222222;"); // Matches image font
+        roleLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #222222;");
 
-        VBox section = new VBox(2); // Small gap between role and names
+        VBox section = new VBox(2); 
         section.getChildren().add(roleLabel);
 
         for (String name : names) {

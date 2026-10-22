@@ -8,7 +8,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -33,24 +32,17 @@ public class MainMenuView {
     public MainMenuView(Stage stage) {
         this.stage = stage;
 
-        Label headerLabel = new Label("Duelo\nX\nMatematica");
-        headerLabel.setAlignment(Pos.CENTER);
-        headerLabel.setStyle(
-            "-fx-font-size: 26px; -fx-font-weight: bold;" +
-            "-fx-border-color: #222222; -fx-border-width: 3px;" +
-            "-fx-padding: 12px 60px; -fx-background-color: #f4f4f4;" +
-            "-fx-alignment: center; -fx-text-alignment: center;"
-        );
+        StackPane headerScroll = ViewUtils.createHeaderLabel("Duelo\nX\nMatematica");
 
-        loginButton    = createMenuButton("LOGIN");
-        registerButton = createMenuButton("CREATE ACCOUNT");
-        exitButton     = createMenuButton("EXIT");
+        loginButton    = createMenuButton("LOGIN", ViewUtils.ButtonSize.MEDIUM);
+        registerButton = createMenuButton("CREATE ACCOUNT", ViewUtils.ButtonSize.MEDIUM);
+        exitButton     = createMenuButton("EXIT", ViewUtils.ButtonSize.MEDIUM);
 
         VBox buttonBox = new VBox(15, loginButton, registerButton, exitButton);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setFillWidth(true);
 
-        menuContent = new VBox(30, headerLabel, buttonBox);
+        menuContent = new VBox(20, headerScroll, buttonBox);
         menuContent.setAlignment(Pos.CENTER);
         menuContent.setFillWidth(false);
         menuContent.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -66,61 +58,27 @@ public class MainMenuView {
         stage.setScene(new Scene(root, 800, 500)); 
     }
 
-    private Button createMenuButton(String text) {
-        Button b = new Button(text);
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.setMinHeight(55);
-        b.setMaxHeight(55);
-        b.setStyle(
-            "-fx-font-size: 18px; -fx-font-weight: bold;" +
-            "-fx-border-color: #000000; -fx-border-width: 3px;" +
-            "-fx-padding: 10px 30px; -fx-background-color: #f9f9f9;" +
-            "-fx-cursor: hand;"
-        );
-        return b;
+    private Button createMenuButton(String text, ViewUtils.ButtonSize size) {
+        Button button = ViewUtils.createSpriteButton("/buttons/btn.png", size, null);
+        button.setText(text);
+        return button;
     }
 
-    // ==========================================
-    // FULL SCREEN SWAP (With Popup Animation)
-    // ==========================================
-    // --- FULL SCREEN & OVERLAY SWAPS ---
-
-    /**
-     * FULL SCREEN SWAP — Hides the previous screen completely and shows the new one
-     * with the same popup effect (fade + scale) as the overlay views.
-     * 
-     * This method handles TWO possible starting states:
-     *   1. Coming from the menu (no overlay active)
-     *   2. Coming from an overlay like Login (Login is on top of the menu)
-     */
     public void setContent(Node newNode) {
-        if (activeTransition != null) { 
-            activeTransition.stop(); 
-            activeTransition = null; 
-        }
+        if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
+        if (root.getChildren().size() == 1 && root.getChildren().get(0) == newNode) return;
 
-        // If this node is already the only one showing, skip
-        if (root.getChildren().size() == 1 && root.getChildren().get(0) == newNode) {
-            return;
-        }
-
-        // Prepare the new node for the popup animation
         newNode.setOpacity(0);
         newNode.setScaleX(0.9);
         newNode.setScaleY(0.9);
-
-        // Add the new node ON TOP of whatever is currently showing
-        // (e.g., on top of the Login card + overlay + menu)
         root.getChildren().add(newNode);
 
-        // Fade + scale in the new node
         FadeTransition fadeIn = new FadeTransition(ANIM_DURATION, newNode);
         fadeIn.setToValue(1.0);
         ScaleTransition scaleIn = new ScaleTransition(ANIM_DURATION, newNode);
         scaleIn.setToX(1.0);
         scaleIn.setToY(1.0);
 
-        // If there's an active overlay (like Login), fade it out simultaneously
         ParallelTransition transition;
         if (overlay.isVisible()) {
             FadeTransition fadeOutOverlay = new FadeTransition(ANIM_DURATION, overlay);
@@ -131,20 +89,14 @@ public class MainMenuView {
         }
 
         activeTransition = transition;
-        
-        // When done, clean up — only the new node should remain
         activeTransition.setOnFinished(e -> {
             root.getChildren().setAll(newNode);
             overlay.setVisible(false);
-            
-            // Reset properties in case this node is shown again later
             newNode.setOpacity(1);
             newNode.setScaleX(1);
             newNode.setScaleY(1);
-            
             activeTransition = null;
         });
-        
         activeTransition.play();
     }
 
@@ -189,10 +141,6 @@ public class MainMenuView {
         activeTransition.play();
     }
 
-    /**
-     * NEW: SHOW POPUP — Puts a dark overlay and a popup card ON TOP of the current screen.
-     * Perfect for Game Settings on top of GameMenus.
-     */
     public void showPopup(Node popupNode) {
         if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
 
@@ -202,7 +150,6 @@ public class MainMenuView {
         popupNode.setScaleX(0.9); 
         popupNode.setScaleY(0.9);
 
-        // Add overlay and popup ON TOP of whatever is currently showing
         root.getChildren().addAll(overlay, popupNode);
 
         FadeTransition fadeInNode = new FadeTransition(ANIM_DURATION, popupNode);
@@ -216,15 +163,12 @@ public class MainMenuView {
         activeTransition.play();
     }
 
-    /**
-     * NEW: CLOSE POPUP — Removes the popup and overlay, revealing the screen underneath.
-     */
     public void closePopup() {
         if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
         if (root.getChildren().size() <= 1) return;
 
         Node topNode = root.getChildren().get(root.getChildren().size() - 1);
-        if (topNode == overlay) return; // Nothing to close
+        if (topNode == overlay) return;
 
         FadeTransition fadeOutNode = new FadeTransition(ANIM_DURATION, topNode);
         fadeOutNode.setToValue(0.0);
@@ -235,7 +179,6 @@ public class MainMenuView {
 
         activeTransition = new ParallelTransition(fadeOutNode, scaleOutNode, fadeOutOverlay);
         activeTransition.setOnFinished(e -> {
-            // Remove ONLY the popup and overlay
             root.getChildren().removeAll(overlay, topNode);
             overlay.setVisible(false);
             activeTransition = null;
@@ -243,10 +186,6 @@ public class MainMenuView {
         activeTransition.play();
     }
 
-
-    // ==========================================
-    // SHOW MENU (Returns to base with Animation)
-    // ==========================================
     public void showMenu() {
         if (activeTransition != null) {
             activeTransition.stop();
@@ -269,19 +208,14 @@ public class MainMenuView {
         fadeOutOverlay.setToValue(0.0);
 
         activeTransition = new ParallelTransition(fadeOutNode, scaleOutNode, fadeOutOverlay);
-        
         activeTransition.setOnFinished(e -> {
             root.getChildren().setAll(menuContent);
             overlay.setVisible(false);
             activeTransition = null;
         });
-        
         activeTransition.play();
     }
 
-    // ==========================================
-    // GETTERS
-    // ==========================================
     public Button getLoginButton()    { return loginButton; }
     public Button getRegisterButton() { return registerButton; }
     public Button getExitButton()     { return exitButton; }
