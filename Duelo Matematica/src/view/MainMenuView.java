@@ -1,8 +1,6 @@
 package view;
 
 import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
 import javafx.animation.Transition;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,6 +11,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 
 public class MainMenuView {
 
@@ -31,18 +30,22 @@ public class MainMenuView {
 
     public MainMenuView(Stage stage) {
         this.stage = stage;
+        String titleText = "Duelo X Matematica";
 
-        StackPane headerScroll = ViewUtils.createHeaderLabel("Duelo\nX\nMatematica");
+        // Use the sprite header directly (returns a StackPane)
+        StackPane headerLabel = ViewUtils.createSpriteHeader("/panels/ui_scroll.png", titleText);
 
-        loginButton    = createMenuButton("LOGIN", ViewUtils.ButtonSize.MEDIUM);
-        registerButton = createMenuButton("CREATE ACCOUNT", ViewUtils.ButtonSize.MEDIUM);
-        exitButton     = createMenuButton("EXIT", ViewUtils.ButtonSize.MEDIUM);
+        loginButton = ViewUtils.createSpriteButton("/buttons/btn.png", "LOGIN", null);
+        
+        registerButton = ViewUtils.createSpriteButton("/buttons/btn.png", "CREATE ACCOUNT", null);
+        
+        exitButton = ViewUtils.createSpriteButton("/buttons/btn.png","EXIT", null);
 
         VBox buttonBox = new VBox(15, loginButton, registerButton, exitButton);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setFillWidth(true);
 
-        menuContent = new VBox(20, headerScroll, buttonBox);
+        menuContent = new VBox(30, headerLabel, buttonBox);
         menuContent.setAlignment(Pos.CENTER);
         menuContent.setFillWidth(false);
         menuContent.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -50,173 +53,74 @@ public class MainMenuView {
         overlay = new Region();
         overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4);");
         overlay.setVisible(false);
-        
+
         root = new StackPane(menuContent);
         root.setStyle("-fx-background-color: #ffffff;");
 
         stage.setTitle("Duelo X Matematica");
-        stage.setScene(new Scene(root, 800, 500)); 
+        stage.setScene(new Scene(root, 900, 600)); 
     }
 
-    private Button createMenuButton(String text, ViewUtils.ButtonSize size) {
-        Button button = ViewUtils.createSpriteButton("/buttons/btn.png", size, null);
-        button.setText(text);
-        return button;
-    }
-
+    /**
+     * FULL SCREEN SWAP (e.g., going to Game Menu)
+     */
     public void setContent(Node newNode) {
-        if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
-        if (root.getChildren().size() == 1 && root.getChildren().get(0) == newNode) return;
-
-        newNode.setOpacity(0);
-        newNode.setScaleX(0.9);
-        newNode.setScaleY(0.9);
-        root.getChildren().add(newNode);
-
-        FadeTransition fadeIn = new FadeTransition(ANIM_DURATION, newNode);
-        fadeIn.setToValue(1.0);
-        ScaleTransition scaleIn = new ScaleTransition(ANIM_DURATION, newNode);
-        scaleIn.setToX(1.0);
-        scaleIn.setToY(1.0);
-
-        ParallelTransition transition;
-        if (overlay.isVisible()) {
-            FadeTransition fadeOutOverlay = new FadeTransition(ANIM_DURATION, overlay);
-            fadeOutOverlay.setToValue(0.0);
-            transition = new ParallelTransition(fadeIn, scaleIn, fadeOutOverlay);
-        } else {
-            transition = new ParallelTransition(fadeIn, scaleIn);
-        }
-
-        activeTransition = transition;
-        activeTransition.setOnFinished(e -> {
-            root.getChildren().setAll(newNode);
-            overlay.setVisible(false);
-            newNode.setOpacity(1);
-            newNode.setScaleX(1);
-            newNode.setScaleY(1);
-            activeTransition = null;
-        });
-        activeTransition.play();
+        overlay.setVisible(false);
+        // Just the menu in the background
+        ViewUtils.animateDropdown(newNode, root, menuContent); 
     }
 
+    /**
+     * OVERLAY SWAP (Popups like Settings/Profile)
+     */
     public void setOverlayContent(Node newNode) {
-        if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
-
-        if (root.getChildren().size() >= 3) {
-            Node oldNode = root.getChildren().get(root.getChildren().size() - 1);
-            if (oldNode == newNode) return;
-            root.getChildren().add(newNode);
-
-            newNode.setOpacity(0); newNode.setScaleX(0.9); newNode.setScaleY(0.9);
-            FadeTransition fadeIn = new FadeTransition(ANIM_DURATION, newNode);
-            fadeIn.setToValue(1.0);
-            ScaleTransition scaleIn = new ScaleTransition(ANIM_DURATION, newNode);
-            scaleIn.setToX(1.0); scaleIn.setToY(1.0);
-
-            FadeTransition fadeOut = new FadeTransition(ANIM_DURATION, oldNode);
-            fadeOut.setToValue(0.0);
-            ScaleTransition scaleOut = new ScaleTransition(ANIM_DURATION, oldNode);
-            scaleOut.setToX(0.9); scaleOut.setToY(0.9);
-
-            activeTransition = new ParallelTransition(fadeIn, scaleIn, fadeOut, scaleOut);
-            activeTransition.setOnFinished(e -> { root.getChildren().remove(oldNode); activeTransition = null; });
-            activeTransition.play();
-            return;
-        }
-
         overlay.setVisible(true);
         overlay.setOpacity(0);
-        newNode.setOpacity(0); newNode.setScaleX(0.9); newNode.setScaleY(0.9);
-        root.getChildren().setAll(menuContent, overlay, newNode);
-
-        FadeTransition fadeInNode = new FadeTransition(ANIM_DURATION, newNode);
-        fadeInNode.setToValue(1.0);
-        ScaleTransition scaleInNode = new ScaleTransition(ANIM_DURATION, newNode);
-        scaleInNode.setToX(1.0); scaleInNode.setToY(1.0);
-        FadeTransition fadeInOverlay = new FadeTransition(ANIM_DURATION, overlay);
+        
+        // Fade in the dark overlay simultaneously
+        FadeTransition fadeInOverlay = new FadeTransition(Duration.millis(250), overlay);
         fadeInOverlay.setToValue(1.0);
+        fadeInOverlay.play();
 
-        activeTransition = new ParallelTransition(fadeInNode, scaleInNode, fadeInOverlay);
-        activeTransition.play();
-    }
-
-    public void showPopup(Node popupNode) {
-        if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
-
-        overlay.setVisible(true);
-        overlay.setOpacity(0);
-        popupNode.setOpacity(0); 
-        popupNode.setScaleX(0.9); 
-        popupNode.setScaleY(0.9);
-
-        root.getChildren().addAll(overlay, popupNode);
-
-        FadeTransition fadeInNode = new FadeTransition(ANIM_DURATION, popupNode);
-        fadeInNode.setToValue(1.0);
-        ScaleTransition scaleInNode = new ScaleTransition(ANIM_DURATION, popupNode);
-        scaleInNode.setToX(1.0); scaleInNode.setToY(1.0);
-        FadeTransition fadeInOverlay = new FadeTransition(ANIM_DURATION, overlay);
-        fadeInOverlay.setToValue(1.0);
-
-        activeTransition = new ParallelTransition(fadeInNode, scaleInNode, fadeInOverlay);
-        activeTransition.play();
-    }
-
-    public void closePopup() {
-        if (activeTransition != null) { activeTransition.stop(); activeTransition = null; }
-        if (root.getChildren().size() <= 1) return;
-
-        Node topNode = root.getChildren().get(root.getChildren().size() - 1);
-        if (topNode == overlay) return;
-
-        FadeTransition fadeOutNode = new FadeTransition(ANIM_DURATION, topNode);
-        fadeOutNode.setToValue(0.0);
-        ScaleTransition scaleOutNode = new ScaleTransition(ANIM_DURATION, topNode);
-        scaleOutNode.setToX(0.9); scaleOutNode.setToY(0.9);
-        FadeTransition fadeOutOverlay = new FadeTransition(ANIM_DURATION, overlay);
-        fadeOutOverlay.setToValue(0.0);
-
-        activeTransition = new ParallelTransition(fadeOutNode, scaleOutNode, fadeOutOverlay);
-        activeTransition.setOnFinished(e -> {
-            root.getChildren().removeAll(overlay, topNode);
-            overlay.setVisible(false);
-            activeTransition = null;
-        });
-        activeTransition.play();
+        // Keep the menu AND the overlay in the background
+        ViewUtils.animateDropdown(newNode, root, menuContent, overlay);
     }
 
     public void showMenu() {
-        if (activeTransition != null) {
-            activeTransition.stop();
-            activeTransition = null;
-        }
-
-        if (root.getChildren().size() == 1 && root.getChildren().get(0) == menuContent) {
-            return;
-        }
-
-        Node topNode = root.getChildren().get(root.getChildren().size() - 1);
+        overlay.setVisible(false);
+        root.getChildren().setAll(menuContent);
+    }
+    
+    /**
+     * SHOW POPUP (Displays a popup view over the current scene)
+     */
+    public void showPopup(Node popupNode) {
+        overlay.setVisible(true);
+        overlay.setOpacity(1.0);
         
-        FadeTransition fadeOutNode = new FadeTransition(ANIM_DURATION, topNode);
-        fadeOutNode.setToValue(0.0);
-        ScaleTransition scaleOutNode = new ScaleTransition(ANIM_DURATION, topNode);
-        scaleOutNode.setToX(0.9);
-        scaleOutNode.setToY(0.9);
-
-        FadeTransition fadeOutOverlay = new FadeTransition(ANIM_DURATION, overlay);
-        fadeOutOverlay.setToValue(0.0);
-
-        activeTransition = new ParallelTransition(fadeOutNode, scaleOutNode, fadeOutOverlay);
-        activeTransition.setOnFinished(e -> {
-            root.getChildren().setAll(menuContent);
-            overlay.setVisible(false);
-            activeTransition = null;
-        });
-        activeTransition.play();
+        // Ensure the popup node isn't already in the root, then add it on top
+        if (!root.getChildren().contains(popupNode)) {
+            root.getChildren().add(popupNode);
+        }
+        popupNode.toFront();
     }
 
-    public Button getLoginButton()    { return loginButton; }
+    /**
+     * CLOSE POPUP (Removes the top popup and hides the dark overlay if needed)
+     */
+    public void closePopup() {
+        // If you want to remove the top-most node added on top of menuContent/overlay:
+        if (root.getChildren().size() > 1) {
+            // Removes the last added node (the popup)
+            root.getChildren().remove(root.getChildren().size() - 1);
+        }
+        overlay.setVisible(false);
+    }
+
+    // ==========================================
+    // GETTERS
+    // ==========================================
+    public Button getLoginButton()    {return loginButton; }
     public Button getRegisterButton() { return registerButton; }
     public Button getExitButton()     { return exitButton; }
     public Stage  getStage()          { return stage; }

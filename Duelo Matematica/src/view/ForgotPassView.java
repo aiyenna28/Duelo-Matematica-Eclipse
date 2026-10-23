@@ -1,5 +1,6 @@
 package view;
 
+import javafx.geometry.HPos; // Added for Halignment
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -10,37 +11,31 @@ import javafx.scene.text.FontWeight;
 
 public class ForgotPassView {
 
-    private final VBox root;                     
+    private final VBox root;                 
     private final TextField emailField;      
     private final Button confirmButton;      
     private final Button backButton;         
-    private final Label messageLabel;         
+    private final Label messageLabel;        
 
     public ForgotPassView() {
-        // 1. Initialize root container first
-        root = new VBox(10);
-        root.setPadding(new Insets(15, 20, 20, 20));
-        root.setAlignment(Pos.TOP_CENTER);
-        root.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        root.setStyle(
-            "-fx-background-color: #f4f4f4; -fx-border-color: #777777;" +
-            "-fx-border-width: 1px;"
-        );
-
-        // 2. Pass root into createPopupHeader to sync content reveal with the unroll animation
-        StackPane titleScroll = ViewUtils.createPopupHeader("FORGOT PASSWORD", root);
+        
+        // 1. HEADER
+        Label titleLabel = ViewUtils.createPopupHeaderLabel("FORGOT PASSWORD");
         backButton = ViewUtils.createCloseButton("X");
 
         BorderPane headerBox = new BorderPane();
-        headerBox.setCenter(titleScroll);
+        headerBox.setCenter(titleLabel);
         headerBox.setRight(backButton);
-        BorderPane.setAlignment(titleScroll, Pos.CENTER);
+        BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        Label emailLabel = new Label("EMAIL");
-        emailLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+        // 2. INPUT FORM
+        Label emailLabel = ViewUtils.createBodyTextLabel("EMAIL");//w Label("EMAIL");
+       // emailLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
         
         emailField = new TextField();
         emailField.setPrefWidth(180);
+        emailField.setFont(ViewUtils.getCustomFont(10));
+        // The CSS ensures text starts typing from the right side
         emailField.setStyle(
             "-fx-background-color: #666666; -fx-text-inner-color: white;" +
             "-fx-background-radius: 0;"
@@ -49,26 +44,41 @@ public class ForgotPassView {
         GridPane formGrid = new GridPane();
         formGrid.setHgap(80);
         formGrid.setVgap(25);
-        formGrid.setAlignment(Pos.CENTER); 
+        formGrid.setAlignment(Pos.CENTER); // Centers the grid in the card
         formGrid.add(emailLabel, 0, 0);
         formGrid.add(emailField, 1, 0);
         
-        messageLabel = new Label();
-        messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 11px;");
+        // Tell the GridPane that Column 1 (the text fields) should grow
+        ColumnConstraints col1 = new ColumnConstraints(); // Column 0 (Labels)
+        ColumnConstraints col2 = new ColumnConstraints(); // Column 1 (Fields)
+        col2.setHgrow(Priority.ALWAYS);                   // <--- CRUCIAL LINE
+        formGrid.getColumnConstraints().addAll(col1, col2);
 
-        confirmButton = new Button("RESET");
-        confirmButton.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
-        confirmButton.setPrefSize(130, 35);
-        confirmButton.setStyle(
-            "-fx-background-color: #999999; -fx-text-fill: black;" +
-            "-fx-background-radius: 0; -fx-cursor: hand;"
-        );
+        // 3. FEEDBACK & ACTION
+        messageLabel = ViewUtils.createBodyTextLabel(""); //new Label();
+        messageLabel.setFont(ViewUtils.getCustomFont(8));
+        messageLabel.setStyle("-fx-text-fill: red;");
+
+        confirmButton = ViewUtils.createSpriteButton("/buttons/btn.png", "RESET", null); //new Button("RESET");
+       // confirmButton.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+      //  confirmButton.setPrefSize(130, 35);
+      //  confirmButton.setStyle(
+      //     "-fx-background-color: #999999; -fx-text-fill: black;" +
+      //      "-fx-background-radius: 0; -fx-cursor: hand;"
+      //  );
         
-        // 3. Add components to root
-        root.getChildren().addAll(headerBox, formGrid, messageLabel, confirmButton);
+        // 4. ASSEMBLE CARD
+        root = new VBox(10, headerBox, formGrid, messageLabel, confirmButton);
+        root.setPadding(new Insets(15, 20, 20, 20));
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        root.setStyle(
+            "-fx-border-color: transparent;" +
+            "-fx-border-width: 1px;"
+        );
     }
 
-    public Node getRoot()                 { return root; }
+    public Node getRoot()               { return root; }
     public TextField getEmailField()    { return emailField; }
     public Button getConfirmButton()    { return confirmButton; }
     public Button getBackButton()       { return backButton; }

@@ -28,7 +28,7 @@ public class MainMenuController implements Navigator {
     public void goToMenu() {
         view.showMenu();
         if (Session.isLoggedIn()) {
-            view.getLoginButton().setText("Logged in: " + Session.getCurrentUser().getUsername());
+            view.getLoginButton().setText("LOGGED IN: " + Session.getCurrentUser().getUsername());
         } else {
             view.getLoginButton().setText("LOGIN");
         }
@@ -143,6 +143,21 @@ public class MainMenuController implements Navigator {
         view.setContent(v.getRoot()); // <--- FULL SCREEN
     }
 
+    @Override
+    public void goToStoryLevels() {
+        StoryLevelsView v = new StoryLevelsView();
+        new StoryLevelsController(v, this);
+        view.setContent(v.getRoot());
+    }
+
+    @Override
+    public void goToStoryScreen(int level) {
+        StoryScreenView v = new StoryScreenView();
+        model.StoryModel model = new model.StoryModel();
+        new StoryScreenController(v, model, level, this);
+        view.setContent(v.getRoot());
+    }
+    
     @Override
     public void goToTopicSelection() {
         TopicView v = new TopicView();

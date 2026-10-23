@@ -9,6 +9,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * GAME START MENU VIEW — The visual layout for the "Select Mode" screen.
+ * 
+ * Uses custom 9-slice scroll headers and sprite buttons consistent with MainMenuView.
+ */
 public class GameStartMenuView {
 
     private final StackPane root;
@@ -20,62 +25,57 @@ public class GameStartMenuView {
     private final Button gearButton;
 
     public GameStartMenuView(String titleText) {
-        StackPane headerScroll = ViewUtils.createHeaderLabel(titleText);
+        // 1. Build Header using the 9-slice sprite header utility
+        StackPane headerLabel = ViewUtils.createSpriteHeader("/panels/ui_scroll.png", titleText);
 
-        btnStory       = createBorderedButton("STORY", ViewUtils.ButtonSize.MEDIUM);
-        btn1vs1        = createBorderedButton("1VS1", ViewUtils.ButtonSize.MEDIUM);
-        btnProfile     = createBorderedButton("PROFILE", ViewUtils.ButtonSize.MEDIUM);
-        btnLeaderboard = createBorderedButton("LEADERBOARD", ViewUtils.ButtonSize.SMALL);
-        btnBack        = createBorderedButton("BACK", ViewUtils.ButtonSize.MEDIUM);
+        // 2. Build Main Buttons using sprite buttons
+        btnStory       = ViewUtils.createSpriteButton("/buttons/btn.png", "STORY", null);
+        btn1vs1        = ViewUtils.createSpriteButton("/buttons/btn.png", "1VS1", null);
+        btnLeaderboard = ViewUtils.createSpriteButton("/buttons/btn.png", "LEADERBOARD", null);
+        btnBack        = ViewUtils.createSpriteButton("/buttons/btn.png", "BACK", null);
+        
+        // Profile can be a two-frame icon button or a sprite button depending on preference; 
+        // retaining your two-frame sprite choice here:
+        btnProfile     = ViewUtils.createTwoFrameSpriteButton("/buttons/btn_profile.png", 50, null);
 
+        // 3. Side-by-side row for Profile & Leaderboard
+        // If btnLeaderboard is a full sprite text button, you can place an icon/button side-by-side cleanly.
         HBox profileLeaderboardRow = new HBox(15, btnProfile, btnLeaderboard);
         profileLeaderboardRow.setAlignment(Pos.CENTER);
         profileLeaderboardRow.setFillHeight(true);
         
-        HBox.setHgrow(btnProfile, Priority.ALWAYS);
+        // Make the leaderboard expand to fill available row space if needed
         HBox.setHgrow(btnLeaderboard, Priority.ALWAYS);
 
+        // 4. Group all buttons vertically
         VBox buttonBox = new VBox(15, btnStory, btn1vs1, profileLeaderboardRow, btnBack);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setFillWidth(true);
 
-        VBox centerContent = new VBox(20, headerScroll, buttonBox);
+        // 5. Stack the header and buttons in the center
+        VBox centerContent = new VBox(30, headerLabel, buttonBox);
         centerContent.setAlignment(Pos.CENTER);
         centerContent.setFillWidth(false);
 
-        gearButton = createGearButton();
+        // 6. Build the Gear Button (bottom-left)
+        gearButton = ViewUtils.createTwoFrameSpriteButton("/buttons/btn_settings.png", 48, null);
 
+        // 7. Assemble Root Layout
         root = new StackPane();
         root.setStyle("-fx-background-color: #ffffff;");
         root.getChildren().addAll(centerContent, gearButton);
         
+        // Pin the gear icon to the bottom-left
         StackPane.setAlignment(gearButton, Pos.BOTTOM_LEFT);
         StackPane.setMargin(gearButton, new Insets(20));
     }
 
-    private Button createBorderedButton(String text, ViewUtils.ButtonSize size) {
-        Button button = ViewUtils.createSpriteButton("/buttons/btn.png", size, null);
-        button.setText(text);
-        return button;
-    }
-
-    private Button createGearButton() {
-        Button gearBtn = new Button("\u2699");
-        gearBtn.setPrefSize(48, 48);
-        gearBtn.setStyle(
-            "-fx-font-size: 24px; -fx-font-weight: bold;" +
-            "-fx-border-color: #000000; -fx-border-width: 2px;" +
-            "-fx-border-radius: 50%; -fx-background-radius: 50%;" +
-            "-fx-background-color: #f9f9f9; -fx-cursor: hand;"
-        );
-        return gearBtn;
-    }
-
-    public Node getRoot()                 { return root; }
-    public Button getStoryButton()        { return btnStory; }
-    public Button get1vs1Button()         { return btn1vs1; }
-    public Button getProfileButton()      { return btnProfile; }
+    // --- GETTERS for the Controller ---
+    public Node getRoot()             { return root; }
+    public Button getStoryButton()      { return btnStory; }
+    public Button get1vs1Button()       { return btn1vs1; }
+    public Button getProfileButton()    { return btnProfile; }
     public Button getLeaderboardButton(){ return btnLeaderboard; }
-    public Button getBackButton()         { return btnBack; }
-    public Button getGearButton()         { return gearButton; }
+    public Button getBackButton()       { return btnBack; }
+    public Button getGearButton()       { return gearButton; }
 }
