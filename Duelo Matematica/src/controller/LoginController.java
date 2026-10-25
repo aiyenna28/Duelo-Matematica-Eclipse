@@ -47,9 +47,9 @@ public class LoginController {
 
         // --- WIRING THE BUTTONS ---
         // When CONFIRM is clicked, run our handleLogin() method.
-        view.getConfirmButton()     .setOnAction(_ -> handleLogin());
+        view.getConfirmButton()     .setOnAction(e -> handleLogin());
         
-        view.getBackButton().setOnAction(_ -> nav.closePopup());
+        view.getBackButton().setOnAction(e -> nav.closePopup());
         
         // When "FORGOT PASSWORD?" is clicked, tell the Navigator to open the reset screen.
         view.getForgotPasswordLink().setOnAction(e -> nav.goToForgotPassword());
