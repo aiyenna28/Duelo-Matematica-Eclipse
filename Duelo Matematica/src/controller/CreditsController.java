@@ -11,6 +11,6 @@ public class CreditsController {
         this.nav = nav;
 
         // Clicking "X" closes the popup
-        view.getBackButton().setOnAction(_ -> nav.closePopup());
+        view.getBackButton().setOnAction(e -> nav.closePopup());
     }
 }
